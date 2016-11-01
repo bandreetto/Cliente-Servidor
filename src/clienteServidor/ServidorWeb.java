@@ -19,6 +19,7 @@ public class ServidorWeb {
 
     public ServidorWeb(int port, String raiz) {
         this.port = port;
+        this.raiz = raiz;
 
         try {
 
@@ -47,14 +48,13 @@ public class ServidorWeb {
                         break;
                     default:
                         arquivo = new File(raiz, "badRequest.html");
+                        break;
                 }
 
-                FileInputStream fis = new FileInputStream(arquivo);
-                saidaByte = new byte[(int) arquivo.length()];
-                fis.read(saidaByte);
-                saida.writeBytes(saidaByte.toString());
+                saida.write(saidaByte);
             }
         } catch (IOException e) {
+            e.printStackTrace();
             System.err.println("Servidor foi abortardo");
         }
     }
@@ -63,13 +63,19 @@ public class ServidorWeb {
         ServidorWeb servidorWeb = new ServidorWeb(2525, ".");
     }
 
-    private void GET() {
+    private void GET() throws IOException {
         if (nomeArquivo.equals("/"))
-            nomeArquivo += "index.html";
+            nomeArquivo = "/" + "index.html";
         try {
             arquivo = new File(raiz, nomeArquivo.substring(1, nomeArquivo.length()));
-        } catch (NullPointerException e) {
+            FileInputStream fis = new FileInputStream(arquivo);
+            saidaByte = new byte[(int) arquivo.length()];
+            fis.read(saidaByte);
+        } catch (IOException e) {
             arquivo = new File(raiz, "notFound.html");
+            FileInputStream fis = new FileInputStream(arquivo);
+            saidaByte = new byte[(int) arquivo.length()];
+            fis.read(saidaByte);
         }
     }
 }
