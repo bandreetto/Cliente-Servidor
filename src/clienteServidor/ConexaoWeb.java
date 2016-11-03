@@ -4,7 +4,7 @@ import java.net.*;
 import java.io.*;
 import java.util.*;
 
-public class ConexaoWeb {
+public class ConexaoWeb extends Thread {
 
     DataOutputStream saida;
     DataInputStream input;
@@ -15,6 +15,7 @@ public class ConexaoWeb {
     private String raiz;
     private File arquivo;
     private byte[] saidaByte;
+    private String header;
 
     //coloque aqui o construtor
     public ConexaoWeb(Socket s, String raiz) {
@@ -24,7 +25,7 @@ public class ConexaoWeb {
 
     //metodo TrataConexao, aqui serao trocadas informacoes com o Browser...
 
-    public void TrataConexao() {
+    public void run() {
         try {
             BufferedReader inFromClient = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             System.out.println("Conexao estabelecida com: " + socket.getInetAddress().getHostAddress());
@@ -49,6 +50,9 @@ public class ConexaoWeb {
                     break;
             }
 
+            saida.writeBytes("\nHTTP/1.1 404 OK\n" +
+                    "Server: Apache/2.2.16 (Debian)\n" +
+                    "Content-Type: text/html; charset=utf-8\n");
             saida.write(saidaByte);
         } catch (IOException e) {
             e.printStackTrace();

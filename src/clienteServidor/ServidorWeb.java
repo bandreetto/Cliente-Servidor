@@ -24,7 +24,7 @@ public class ServidorWeb {
                 Socket socket = sw.accept();
 
                 ConexaoWeb conexao = new ConexaoWeb(socket, raiz);
-                conexao.TrataConexao();
+                conexao.start();
             }
         } catch (IOException e) {
             e.printStackTrace();
