@@ -16,11 +16,17 @@ public class ConexaoWeb extends Thread {
     private File arquivo;
     private byte[] saidaByte;
     private String header;
+    private DataOutputStream log;
 
     //coloque aqui o construtor
     public ConexaoWeb(Socket s, String raiz) {
         socket = s;
         this.raiz = raiz;
+        try {
+            log = new DataOutputStream(new FileOutputStream("WebLog.txt", true));
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
     }
 
     //metodo TrataConexao, aqui serao trocadas informacoes com o Browser...
@@ -28,12 +34,15 @@ public class ConexaoWeb extends Thread {
     public void run() {
         try {
             BufferedReader inFromClient = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+
             System.out.println("Conexao estabelecida com: " + socket.getInetAddress().getHostAddress());
+            log.writeBytes("Conexao estabelecida com: " + socket.getInetAddress().getHostAddress() + "\n");
 
             saida = new DataOutputStream(socket.getOutputStream());
 
             String clientSentence = inFromClient.readLine();
             System.out.println("Recebido: " + clientSentence);
+            log.writeBytes("Recebido: " + clientSentence + "\n");
 
             StringTokenizer st = new StringTokenizer(clientSentence);
 
