@@ -9,83 +9,69 @@ public class ConexaoWeb {
     DataOutputStream saida;
     DataInputStream input;
     static Socket socket;                    //socket que vai tratar com o cliente.
-    static String arqi = "index.html";    //se nao for passado um arquivo, o servidor fornecera a pagina index.html
+    static String arqi;    //se nao for passado um arquivo, o servidor fornecera a pagina index.html
+    private String metodo;
+    private String versao;
+    private String raiz;
+    private File arquivo;
+    private byte[] saidaByte;
 
     //coloque aqui o construtor
-    public ConexaoWeb(Socket s) {
+    public ConexaoWeb(Socket s, String raiz) {
         socket = s;
+        this.raiz = raiz;
     }
 
-    public static void main(String[] args) throws Exception {
-        Socket s = new Socket("localhost", 2525);
-        ConexaoWeb conexao = new ConexaoWeb(s);
-        conexao.TrataConexao();
-
-    }
     //metodo TrataConexao, aqui serao trocadas informacoes com o Browser...
 
-    public static void TrataConexao() {
-        String metodo = "";                //String que vai guardar o metodo HTTP requerido
-        String ct;                    //String que guarda o tipo de arquivo: text/html;image/gif....
-        String versao = "";            //String que guarda a versao do Protocolo.
-        File arquivo;                //Objeto para os arquivos que vao ser enviados.
-        String NomeArq;                //String para o nome do arquivo.
-        String raiz = ".";                //String para o diretorio raiz.
-        String inicio;                //String para guardar o inicio da linha
-        String senha_user = "";        //String para armazenar o nome e a senha do usuario
-        Date now = new Date();
+    public void TrataConexao() {
         try {
+            BufferedReader inFromClient = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            System.out.println("Conexao estabelecida com: " + socket.getInetAddress().getHostAddress());
 
-            //Coloque aqui o acesso aos streams do socket!
+            saida = new DataOutputStream(socket.getOutputStream());
 
-            String answer;
-            String sentence;
-            BufferedReader inFromUser = new BufferedReader(new InputStreamReader(System.in));
-            System.out.println("Iniciando cliente. ");
-            System.out.println("Iniciando conexao com o servidor. ");
-            DataOutputStream outToServer = new DataOutputStream(socket.getOutputStream());
-            System.out.println("Conexao estabelecida ");
+            String clientSentence = inFromClient.readLine();
+            System.out.println("Recebido: " + clientSentence);
 
-            System.out.println("Digite sua Requisicao: ");
-            BufferedReader inFromServer = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            sentence = inFromUser.readLine();
-            outToServer.writeBytes(sentence + '\n');
-            answer = inFromServer.readLine();
-            System.out.println("Mensagem do servidor: " + answer);
+            StringTokenizer st = new StringTokenizer(clientSentence);
 
-            //Coloque aqui o procedimento para ler toda a mensagem do cliente. Imprima na tela com System.out.println()!
+            metodo = st.nextToken();
+            arqi = st.nextToken();
+            versao = st.nextToken();
 
-			/* Para a segunda parte, ignore para a primeira!
-  			// Enviar o arquivo
-			try {
-				
-			
-			
-			//Crie aqui o objeto do tipo File
-			
-			//agora faca a leitura do arquivo.
+            switch (metodo) {
+                case "GET":
+                    GET();
+                    break;
+                default:
+                    arquivo = new File(raiz, "badRequest.html");
+                    break;
+            }
 
-			//Mande aqui a mensagem para o cliente.
-			
-			}
-			//este catch e para o caso do arquivo nao existir. Mande para o browser uma mensagem de not found, e um texto html!
-			catch(IOException e)
-			{
-				
-			}   
-			*/
-
+            saida.write(saidaByte);
         } catch (IOException e) {
             e.printStackTrace();
-        }
-
-        //Fecha o socket.
-        try {
-            socket.close();
-        } catch (IOException e) {
+            System.err.println("Servidor foi abortardo");
         }
     }
 
+
+    private void GET() throws IOException {
+        if (arqi.equals("/"))
+            arqi = "/" + "index.html";
+        try {
+            arquivo = new File(raiz, arqi.substring(1, arqi.length()));
+            FileInputStream fis = new FileInputStream(arquivo);
+            saidaByte = new byte[(int) arquivo.length()];
+            fis.read(saidaByte);
+        } catch (IOException e) {
+            arquivo = new File(raiz, "notFound.html");
+            FileInputStream fis = new FileInputStream(arquivo);
+            saidaByte = new byte[(int) arquivo.length()];
+            fis.read(saidaByte);
+        }
+    }
 //Funcao que retorna o tipo do arquivo.
 
     public String TipoArquivo(String nome) {
